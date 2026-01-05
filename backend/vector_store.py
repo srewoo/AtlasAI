@@ -1,78 +1,121 @@
 """
-Lightweight Vector Store - Optimized for Render.com free tier (512MB RAM)
-Uses simple in-memory storage instead of ChromaDB to save memory
+Vector Store with Semantic Search - Full ChromaDB implementation
+Optimized for local development with complete ML capabilities
 """
 
+import chromadb
+from chromadb.config import Settings
+from sentence_transformers import SentenceTransformer
 from typing import List, Dict
 import logging
-import hashlib
+import os
 
 logger = logging.getLogger(__name__)
 
 
 class VectorStore:
-    """Lightweight in-memory vector store - no heavy ML models needed"""
+    """ChromaDB vector store with semantic search for RAG"""
     
     def __init__(self, collection_name: str = "chatbot_knowledge"):
-        # Simple in-memory storage
-        self.documents = []
-        self.collection_name = collection_name
-        logger.info(f"Initialized lightweight vector store: {collection_name}")
+        # Initialize ChromaDB with persistent storage
+        db_path = os.path.join(os.path.dirname(__file__), "chroma_db")
+        os.makedirs(db_path, exist_ok=True)
+        
+        self.client = chromadb.PersistentClient(
+            path=db_path,
+            settings=Settings(
+                anonymized_telemetry=False,
+                allow_reset=True
+            )
+        )
+        
+        # Initialize embedding model for semantic search
+        logger.info("Loading sentence transformer model...")
+        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        logger.info("Model loaded successfully")
+        
+        # Get or create collection
+        self.collection = self.client.get_or_create_collection(
+            name=collection_name,
+            metadata={"hnsw:space": "cosine"}
+        )
         
     def add_documents(self, documents: List[Dict], source: str):
-        """Add documents to in-memory store"""
+        """Add documents to vector store with semantic embeddings"""
         try:
+            ids = []
+            texts = []
+            metadatas = []
+            
             for i, doc in enumerate(documents):
                 doc_id = f"{source}_{doc.get('id', i)}"
                 text = f"{doc.get('title', '')} {doc.get('content', '')} {doc.get('snippet', '')}"
                 
-                self.documents.append({
-                    'id': doc_id,
-                    'text': text.lower(),  # lowercase for simple matching
+                ids.append(doc_id)
+                texts.append(text)
+                metadatas.append({
                     'source': source,
                     'title': doc.get('title', ''),
-                    'url': doc.get('url', ''),
-                    'content': text[:500]  # Keep first 500 chars
+                    'url': doc.get('url', '')
                 })
+            
+            if texts:
+                # Generate semantic embeddings
+                embeddings = self.embedding_model.encode(texts).tolist()
                 
-            logger.info(f"Added {len(documents)} documents from {source}")
+                self.collection.add(
+                    ids=ids,
+                    embeddings=embeddings,
+                    documents=texts,
+                    metadatas=metadatas
+                )
+                logger.info(f"Added {len(texts)} documents from {source} with semantic embeddings")
         except Exception as e:
             logger.error(f"Error adding documents: {e}")
     
     def search(self, query: str, n_results: int = 5, source_filter: str = None) -> List[Dict]:
-        """Simple keyword-based search (no ML embeddings needed)"""
+        """Semantic search using embeddings"""
         try:
-            query_lower = query.lower()
-            query_words = set(query_lower.split())
+            # Generate query embedding
+            query_embedding = self.embedding_model.encode([query])[0].tolist()
             
-            # Score documents by keyword matches
-            scored_docs = []
-            for doc in self.documents:
-                # Filter by source if specified
-                if source_filter and doc['source'] != source_filter:
-                    continue
-                
-                # Count matching words
-                doc_words = set(doc['text'].split())
-                matches = len(query_words & doc_words)
-                
-                if matches > 0:
-                    scored_docs.append((matches, doc))
+            # Build where filter
+            where = None
+            if source_filter:
+                where = {"source": source_filter}
             
-            # Sort by score and return top n
-            scored_docs.sort(reverse=True, key=lambda x: x[0])
-            results = [doc for score, doc in scored_docs[:n_results]]
+            results = self.collection.query(
+                query_embeddings=[query_embedding],
+                n_results=n_results,
+                where=where
+            )
             
-            return results
+            # Format results
+            documents = []
+            if results['documents'] and results['documents'][0]:
+                for i, doc in enumerate(results['documents'][0]):
+                    metadata = results['metadatas'][0][i] if results['metadatas'] else {}
+                    documents.append({
+                        'content': doc,
+                        'title': metadata.get('title', ''),
+                        'url': metadata.get('url', ''),
+                        'source': metadata.get('source', '')
+                    })
             
+            logger.info(f"Semantic search returned {len(documents)} results")
+            return documents
         except Exception as e:
             logger.error(f"Error searching vector store: {e}")
             return []
     
     def clear_collection(self):
-        """Clear all documents"""
+        """Clear all documents from collection"""
         try:
-            self.documents = []
+            self.client.delete_collection(self.collection.name)
+            self.collection = self.client.create_collection(
+                name=self.collection.name,
+                metadata={"hnsw:space": "cosine"}
+            )
             logger.info("Collection cleared")
         except Exception as e:
             logger.error(f"Error clearing collection: {e}")
