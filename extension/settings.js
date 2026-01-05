@@ -24,6 +24,12 @@ async function loadSettings() {
 function renderSettingsUI() {
   const container = document.getElementById('settings-app');
   
+  // Remove old event listeners if any
+  const oldSaveBtn = document.getElementById('saveSettingsBtn');
+  const oldTestBtn = document.getElementById('testConnectionBtn');
+  if (oldSaveBtn) oldSaveBtn.replaceWith(oldSaveBtn.cloneNode(true));
+  if (oldTestBtn) oldTestBtn.replaceWith(oldTestBtn.cloneNode(true));
+  
   container.innerHTML = `
     <div class="settings-header">
       <div class="settings-title" data-testid="settings-title">Settings</div>
@@ -170,14 +176,20 @@ function renderSettingsUI() {
     </div>
     
     <div class="settings-actions">
-      <button class="button button-primary" onclick="saveSettings()" data-testid="save-settings-btn">
+      <button class="button button-primary" id="saveSettingsBtn" data-testid="save-settings-btn">
         Save Settings
       </button>
-      <button class="button button-secondary" onclick="testConnection()" data-testid="test-connection-btn">
+      <button class="button button-secondary" id="testConnectionBtn" data-testid="test-connection-btn">
         Test Connection
       </button>
     </div>
   `;
+  
+  // Add event listeners after HTML is rendered
+  setTimeout(() => {
+    document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+    document.getElementById('testConnectionBtn').addEventListener('click', testConnection);
+  }, 0);
 }
 
 function populateForm() {
