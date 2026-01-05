@@ -1,0 +1,48 @@
+===============================================
+Atlas AI - Chrome Extension Setup Instructions
+===============================================
+
+IMPORTANT: Before loading the extension, you MUST:
+
+1. UPDATE API_URL in both files:
+   - popup.js (line 3)
+   - settings.js (line 3)
+   
+   Change:
+   const API_URL = 'YOUR_BACKEND_URL_HERE';
+   
+   To your actual backend URL, for example:
+   const API_URL = 'https://your-domain.com';
+   
+2. ADD ICON FILES:
+   The extension needs icon files in the icons/ folder:
+   - icon16.png (16x16 pixels)
+   - icon48.png (48x48 pixels)
+   - icon128.png (128x128 pixels)
+   
+   You can:
+   a) Use any icon generator online
+   b) Convert the included icon.svg to PNG files
+   c) Use existing images
+   
+3. LOAD IN CHROME:
+   - Open chrome://extensions/
+   - Enable "Developer mode"
+   - Click "Load unpacked"
+   - Select this directory (/app/extension)
+   
+4. CONFIGURE:
+   - Click extension icon
+   - Click "Open Settings"
+   - Fill in your API keys and credentials
+   - Click "Test Connection"
+   - Click "Save Settings"
+
+5. START CHATTING:
+   - Click extension icon
+   - Type your question
+   - Press Enter
+
+For detailed documentation, see README.md
+
+===============================================

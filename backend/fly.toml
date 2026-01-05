@@ -1,0 +1,68 @@
+# Fly.io Configuration for Atlas AI Backend
+# Deploy with: fly deploy
+
+app = "atlas-ai-backend"
+
+[build]
+  # Fly will automatically detect Dockerfile
+
+[env]
+  PORT = "8001"
+  DB_NAME = "atlas_ai_db"
+  CORS_ORIGINS = "*"
+  LOG_LEVEL = "INFO"
+
+[http_service]
+  internal_port = 8001
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 25
+    soft_limit = 20
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8001
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "1s"
+    restart_limit = 0
+
+  [[services.http_checks]]
+    interval = 10000
+    grace_period = "5s"
+    method = "get"
+    path = "/api/"
+    protocol = "http"
+    timeout = 2000
+    tls_skip_verify = false
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 1024
+
+[[mounts]]
+  source = "chroma_data"
+  destination = "/app/chroma_db"
+

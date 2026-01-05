@@ -1,0 +1,38 @@
+# Render.com Configuration for Atlas AI Backend
+# Deploy by connecting your GitHub repo to Render
+
+services:
+  - type: web
+    name: atlas-ai-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    branch: main
+    
+    healthCheckPath: /api/
+    
+    envVars:
+      - key: DB_NAME
+        value: atlas_ai_db
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: MONGO_URL
+        fromDatabase:
+          name: atlas-mongodb
+          property: connectionString
+    
+    disk:
+      name: chroma-data
+      mountPath: /app/chroma_db
+      sizeGB: 1
+
+databases:
+  - name: atlas-mongodb
+    databaseName: atlas_ai_db
+    user: atlas_user
+    plan: free
+
