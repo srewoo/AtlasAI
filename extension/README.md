@@ -115,7 +115,7 @@ You can use any icon or generate one online.
 - **FastAPI Server**: REST API endpoints
 - **ChromaDB**: Vector database for RAG
 - **Sentence Transformers**: Embeddings generation (all-MiniLM-L6-v2)
-- **LLM Router**: Multi-provider LLM support via emergentintegrations
+- **LLM Router**: Multi-provider LLM support with native APIs
 - **Agentic RAG**: Intelligent query routing and context gathering
 
 ### Frontend (Extension)
@@ -204,4 +204,4 @@ You can use any icon or generate one online.
 
 ## License
 
-This project is part of the Emergent platform ecosystem.
+Open source project for Atlas AI.

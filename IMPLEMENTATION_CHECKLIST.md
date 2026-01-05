@@ -5,7 +5,7 @@
 ### Backend (✅ All Done)
 - [x] FastAPI server with REST API endpoints
 - [x] Agentic RAG engine with intelligent query routing
-- [x] Multi-LLM support via emergentintegrations
+- [x] Multi-LLM support with native APIs
   - [x] OpenAI (GPT-5.2, GPT-4o, etc.)
   - [x] Anthropic (Claude Sonnet/Opus/Haiku)
   - [x] Google Gemini (3 Flash/Pro)

@@ -15,7 +15,7 @@ Built with an **Agentic RAG (Retrieval-Augmented Generation)** system that intel
 - **FastAPI**: Modern Python web framework
 - **ChromaDB**: Vector database for embeddings storage
 - **Sentence Transformers**: `all-MiniLM-L6-v2` for embeddings generation
-- **emergentintegrations**: Multi-LLM support library
+- **Native LLM APIs**: Direct integration with OpenAI, Anthropic, Google
 - **MongoDB**: Chat history and settings storage
 - **Atlassian Python API**: Confluence & Jira integration
 - **BeautifulSoup**: Web scraping
@@ -282,11 +282,11 @@ The backend is pre-configured and running on port 8001.
 
 ### Adding New LLM Providers
 
-The system uses `emergentintegrations` which supports multiple providers out of the box. To add a new provider:
+The system uses native LLM APIs for each provider. To add a new provider:
 
-1. Check if supported by emergentintegrations
-2. Update settings UI to include provider option
-3. No backend changes needed
+1. Add the provider's Python SDK to requirements.txt
+2. Implement the provider method in llm_router.py
+3. Update settings UI to include provider option
 
 ### Customizing UI
 
@@ -340,10 +340,10 @@ Potential improvements:
 - Backend logs: `/var/log/supervisor/backend.*.log`
 - Extension console: Chrome DevTools when inspecting popup
 
-## License & Credits
+## Credits
 
-Built on the Emergent platform using:
-- emergentintegrations (Emergent Labs)
+Built with:
+- OpenAI, Anthropic, Google Gemini APIs
 - ChromaDB
 - Sentence Transformers
 - Atlassian Python API
