@@ -23,6 +23,8 @@ cd /app/backend
 pip install -r requirements.txt
 # Backend runs on port 8001
 ```
+mongodb+srv://atlasai_user:IuWbj46v8o0RREc0@atlasai.4rg7ntu.mongodb.net/?appName=AtlasAI
+
 
 ### 2. Configure Backend URL
 

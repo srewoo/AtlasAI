@@ -1,0 +1,93 @@
+/* Theme System - Light and Dark Mode Support */
+
+/* Light Theme (Default) */
+:root,
+:root[data-theme="light"] {
+  --background: #FFFFFF;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --primary: #2563EB;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #1E293B;
+  --muted: #F8FAFC;
+  --muted-foreground: #64748B;
+  --accent: #EFF6FF;
+  --accent-foreground: #1D4ED8;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #2563EB;
+  --message-user-bg: #2563EB;
+  --message-user-fg: #FFFFFF;
+  --message-bot-bg: #F1F5F9;
+  --message-bot-fg: #1E293B;
+  --code-bg: #F8FAFC;
+  --code-border: #E2E8F0;
+}
+
+/* Dark Theme */
+:root[data-theme="dark"] {
+  --background: #0F172A;
+  --foreground: #F8FAFC;
+  --card: #1E293B;
+  --primary: #3B82F6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1E293B;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #1E3A8A;
+  --accent-foreground: #93C5FD;
+  --border: #334155;
+  --input: #334155;
+  --ring: #3B82F6;
+  --message-user-bg: #3B82F6;
+  --message-user-fg: #FFFFFF;
+  --message-bot-bg: #1E293B;
+  --message-bot-fg: #F8FAFC;
+  --code-bg: #1E293B;
+  --code-border: #334155;
+}
+
+/* Auto theme based on system preference */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --background: #0F172A;
+    --foreground: #F8FAFC;
+    --primary: #3B82F6;
+    --primary-foreground: #FFFFFF;
+    --secondary: #1E293B;
+    --secondary-foreground: #F8FAFC;
+    --muted: #1E293B;
+    --muted-foreground: #94A3B8;
+    --accent: #1E3A8A;
+    --accent-foreground: #93C5FD;
+    --border: #334155;
+    --input: #334155;
+    --ring: #3B82F6;
+    --message-user-bg: #3B82F6;
+    --message-user-fg: #FFFFFF;
+    --message-bot-bg: #1E293B;
+    --message-bot-fg: #F8FAFC;
+    --code-bg: #1E293B;
+    --code-border: #334155;
+  }
+}
+
+/* Smooth theme transition */
+body,
+.app-container,
+.settings-container,
+.message-bubble,
+.button,
+.icon-button,
+.input-field,
+.form-input,
+.form-select {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Prevent transition on initial load */
+body.no-transition * {
+  transition: none !important;
+}

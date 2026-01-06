@@ -1,0 +1,22 @@
+{
+  "name": "atlas-ai-extension",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Atlas AI Chrome Extension with RAG Backend",
+  "scripts": {
+    "dev": "node esbuild.config.js --watch",
+    "build": "node esbuild.config.js",
+    "build:prod": "NODE_ENV=production node esbuild.config.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "marked": "^11.1.1",
+    "highlight.js": "^11.9.0",
+    "dompurify": "^3.0.8"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.11",
+    "esbuild-plugin-copy": "^2.1.1",
+    "@types/chrome": "^0.0.258"
+  }
+}

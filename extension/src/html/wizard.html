@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atlas AI - Setup Wizard</title>
+  <link rel="stylesheet" href="base.css">
+  <style>
+    body {
+      width: 600px;
+      min-height: 500px;
+      padding: 0;
+      margin: 0;
+    }
+
+    .wizard-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .wizard-header {
+      padding: 24px;
+      background: var(--primary);
+      color: var(--primary-foreground);
+      text-align: center;
+    }
+
+    .wizard-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .wizard-subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .wizard-progress {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      gap: 8px;
+      background: var(--muted);
+    }
+
+    .progress-step {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all 0.3s;
+    }
+
+    .progress-step.active {
+      background: var(--primary);
+      transform: scale(1.2);
+    }
+
+    .progress-step.completed {
+      background: var(--primary);
+    }
+
+    .wizard-content {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+    }
+
+    .wizard-step {
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+
+    .wizard-step.active {
+      display: block;
+    }
+
+    .step-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .step-description {
+      color: var(--muted-foreground);
+      margin-bottom: 24px;
+    }
+
+    .wizard-footer {
+      padding: 20px 32px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .provider-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .provider-card {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .provider-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .provider-card.selected {
+      border-color: var(--primary);
+      background: var(--accent);
+    }
+
+    .provider-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .provider-desc {
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-list li {
+      padding: 8px 0;
+      padding-left: 24px;
+      position: relative;
+    }
+
+    .feature-list li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="wizard-container">
+    <div class="wizard-header">
+      <div class="wizard-title">Welcome to Atlas AI</div>
+      <div class="wizard-subtitle">Let's get you set up in just a few steps</div>
+    </div>
+
+    <div class="wizard-progress">
+      <div class="progress-step active" data-step="0"></div>
+      <div class="progress-step" data-step="1"></div>
+      <div class="progress-step" data-step="2"></div>
+      <div class="progress-step" data-step="3"></div>
+    </div>
+
+    <div class="wizard-content">
+      <!-- Step 1: Welcome -->
+      <div class="wizard-step active" data-step="0">
+        <div class="step-title">Welcome!</div>
+        <div class="step-description">
+          Atlas AI is your intelligent assistant that combines:
+        </div>
+        <ul class="feature-list">
+          <li>Multiple AI models (GPT, Claude, Gemini, Ollama)</li>
+          <li>Confluence & Jira integration</li>
+          <li>Web search capabilities</li>
+          <li>Smart document retrieval</li>
+          <li>Real-time streaming responses</li>
+        </ul>
+      </div>
+
+      <!-- Step 2: Choose LLM Provider -->
+      <div class="wizard-step" data-step="1">
+        <div class="step-title">Choose Your AI Provider</div>
+        <div class="step-description">
+          Select which AI model you'd like to use. You can change this later in settings.
+        </div>
+        <div class="provider-cards">
+          <div class="provider-card" data-provider="openai">
+            <div class="provider-name">OpenAI</div>
+            <div class="provider-desc">GPT-4, GPT-3.5 Turbo</div>
+          </div>
+          <div class="provider-card" data-provider="anthropic">
+            <div class="provider-name">Anthropic Claude</div>
+            <div class="provider-desc">Claude 3 Opus, Sonnet</div>
+          </div>
+          <div class="provider-card" data-provider="gemini">
+            <div class="provider-name">Google Gemini</div>
+            <div class="provider-desc">Gemini Pro, Ultra</div>
+          </div>
+          <div class="provider-card" data-provider="ollama">
+            <div class="provider-name">Ollama (Local)</div>
+            <div class="provider-desc">Run models locally</div>
+          </div>
+        </div>
+        <div style="margin-top: 24px;">
+          <label class="form-label">API Key</label>
+          <input type="password" class="form-input" id="apiKeyInput" placeholder="Enter your API key">
+          <div class="help-text">Don't have an API key? Get one from your provider's website.</div>
+        </div>
+      </div>
+
+      <!-- Step 3: Optional Integrations -->
+      <div class="wizard-step" data-step="2">
+        <div class="step-title">Optional Integrations</div>
+        <div class="step-description">
+          Connect to Confluence and Jira for enhanced productivity (optional).
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confluence URL</label>
+          <input type="text" class="form-input" id="confluenceUrl" placeholder="https://your-domain.atlassian.net">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jira URL</label>
+          <input type="text" class="form-input" id="jiraUrl" placeholder="https://your-domain.atlassian.net">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Atlassian API Token</label>
+          <input type="password" class="form-input" id="atlassianToken" placeholder="Optional - for Confluence & Jira">
+          <div class="help-text">You can skip this and configure it later in settings.</div>
+        </div>
+      </div>
+
+      <!-- Step 4: All Done -->
+      <div class="wizard-step" data-step="3">
+        <div class="step-title">You're All Set!</div>
+        <div class="step-description">
+          Atlas AI is ready to use. Here are some tips to get started:
+        </div>
+        <ul class="feature-list">
+          <li>Use <strong>Ctrl+Shift+A</strong> (Cmd+Shift+A on Mac) to open the popup</li>
+          <li>Right-click any selected text to ask Atlas AI about it</li>
+          <li>Toggle dark mode with <strong>Ctrl+Shift+T</strong></li>
+          <li>Start a new chat with <strong>Ctrl+Shift+N</strong></li>
+        </ul>
+        <div style="margin-top: 24px; padding: 16px; background: var(--accent); border-radius: 8px;">
+          Click "Finish" to start using Atlas AI!
+        </div>
+      </div>
+    </div>
+
+    <div class="wizard-footer">
+      <button class="button button-secondary" id="backBtn" style="display: none;">Back</button>
+      <div style="flex: 1;"></div>
+      <button class="button button-secondary" id="skipBtn">Skip Setup</button>
+      <button class="button button-primary" id="nextBtn">Next</button>
+    </div>
+  </div>
+
+  <script type="module" src="wizard.js"></script>
+</body>
+</html>
