@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Atlas AI",
   "short_name": "Atlas AI",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "AI-powered assistant with access to Confluence, Jira, and web knowledge. Search documentation, query tickets, and get intelligent answers using GPT, Claude, or Gemini.",
   "permissions": [
     "storage",

@@ -12,10 +12,26 @@ const enabledTabs = new Set();
 async function initSidePanel() {
   try {
     if (chrome.sidePanel) {
-      // Enable auto-open on action click - this bypasses user gesture issues
+      // Enable auto-open on action click (Chrome handles opening)
       await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+
+      // Disable panel for all existing tabs by default
+      const tabs = await chrome.tabs.query({});
+      for (const tab of tabs) {
+        if (tab.id) {
+          try {
+            await chrome.sidePanel.setOptions({
+              tabId: tab.id,
+              enabled: false
+            });
+          } catch (e) {
+            // Ignore errors for individual tabs
+          }
+        }
+      }
+
       if (DEBUG_MODE) {
-        console.log('Side panel behavior set: openPanelOnActionClick = true');
+        console.log('Side panel initialized: openPanelOnActionClick = true, all tabs disabled by default');
       }
     }
   } catch (e) {
@@ -63,39 +79,66 @@ chrome.runtime.onStartup.addListener(async () => {
   await initSidePanel();
 });
 
-// Open side panel only for the clicked tab
-// NOTE: We enable openPanelOnActionClick and let Chrome handle the opening
-// This avoids the user gesture restriction on sidePanel.open()
-chrome.action.onClicked.addListener((tab) => {
+// Open side panel only for the clicked tab (tab-specific)
+// NOTE: Chrome auto-opens via openPanelOnActionClick, we just enable it for this tab
+chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.id) return;
 
   const tabId = tab.id;
 
-  // Track this tab as enabled
-  enabledTabs.add(tabId);
+  try {
+    // Track this tab as enabled
+    enabledTabs.add(tabId);
 
-  // Enable panel for this tab - Chrome will open it via openPanelOnActionClick
-  chrome.sidePanel.setOptions({
-    tabId: tabId,
-    path: 'popup.html',
-    enabled: true
-  });
+    // Enable panel for this specific tab only
+    // Chrome will automatically open it due to openPanelOnActionClick: true
+    await chrome.sidePanel.setOptions({
+      tabId: tabId,
+      path: 'popup.html',
+      enabled: true
+    });
 
-  // Handle restore state cleanup
-  chrome.storage.local.get(['atlasMinimized', 'atlasPreparedRestore'], (result) => {
-    if (result.atlasMinimized || result.atlasPreparedRestore) {
-      chrome.tabs.sendMessage(tabId, { type: 'HIDE_FLOATING_BUTTON' }).catch(() => {});
-      chrome.storage.local.set({
-        atlasMinimized: false,
-        atlasPreparedRestore: false
-      });
+    if (DEBUG_MODE) {
+      console.log('Side panel enabled and opening for tab:', tabId);
     }
-  });
+
+    // Handle restore state cleanup
+    chrome.storage.local.get(['atlasMinimized', 'atlasPreparedRestore'], (result) => {
+      if (result.atlasMinimized || result.atlasPreparedRestore) {
+        chrome.tabs.sendMessage(tabId, { type: 'HIDE_FLOATING_BUTTON' }).catch(() => {});
+        chrome.storage.local.set({
+          atlasMinimized: false,
+          atlasPreparedRestore: false
+        });
+      }
+    });
+  } catch (error) {
+    if (DEBUG_MODE) {
+      console.error('Error enabling side panel for tab:', tabId, error);
+    }
+  }
 });
 
 // Disable side panel when tab is closed
 chrome.tabs.onRemoved.addListener((tabId) => {
   enabledTabs.delete(tabId);
+});
+
+// Disable side panel for newly created tabs
+chrome.tabs.onCreated.addListener(async (tab) => {
+  if (tab.id) {
+    try {
+      await chrome.sidePanel.setOptions({
+        tabId: tab.id,
+        enabled: false
+      });
+      if (DEBUG_MODE) {
+        console.log('Side panel disabled for new tab:', tab.id);
+      }
+    } catch (e) {
+      // Ignore errors
+    }
+  }
 });
 
 // Disable side panel when navigating to a different tab
