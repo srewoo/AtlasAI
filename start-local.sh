@@ -13,8 +13,9 @@ cd "$(dirname "$0")/backend"
 if [ ! -f .env ]; then
     echo "Creating .env file..."
     cat > .env << 'EOF'
-MONGO_URL=mongodb+srv://atlasai_user:IuWbj46v8o0RREc0@atlasai.4rg7ntu.mongodb.net/?appName=AtlasAI
-DB_NAME=atlas_ai_db
+# Database: SQLite (local file, no server needed)
+# Data stored in backend/atlas_ai.db
+
 CORS_ORIGINS=*
 LOG_LEVEL=INFO
 EOF
@@ -54,8 +55,8 @@ echo "📥 Installing dependencies (this will take 2-3 minutes)..."
 echo "   - FastAPI & Uvicorn..."
 pip install --quiet fastapi uvicorn[standard] python-multipart python-dotenv
 
-echo "   - Database drivers..."
-pip install --quiet motor pymongo
+echo "   - SQLite async driver..."
+pip install --quiet aiosqlite
 
 echo "   - LLM APIs..."
 pip install --quiet openai anthropic google-generativeai
@@ -79,6 +80,7 @@ echo "================================================"
 echo "📍 Backend: http://localhost:8001"
 echo "📊 API docs: http://localhost:8001/docs"
 echo "📝 OpenAPI: http://localhost:8001/openapi.json"
+echo "💾 Database: SQLite (backend/atlas_ai.db)"
 echo "================================================"
 echo ""
 echo "Press Ctrl+C to stop the server"

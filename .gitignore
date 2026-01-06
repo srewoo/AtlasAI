@@ -85,6 +85,8 @@ android-sdk/
 # Backend environment files
 backend/.env
 backend/chroma_db/
+backend/*.db
+backend/atlas_ai.db
 
 # Fly.io deployment
 .fly/

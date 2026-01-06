@@ -1,0 +1,43 @@
+# Docker ignore file for Atlas AI Backend
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ChromaDB data (will be mounted as volume)
+chroma_db/
+
+# Documentation
+*.md
+docs/
+
+# Misc
+.DS_Store
+*.log
+

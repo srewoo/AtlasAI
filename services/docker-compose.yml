@@ -1,0 +1,291 @@
+version: '3.8'
+
+services:
+  # Infrastructure
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=atlas_ai
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Main API Gateway
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017
+      - DB_NAME=atlas_ai
+      - REDIS_URL=redis://redis:6379
+      - ORCHESTRATOR_URL=http://orchestrator:8002
+      - CORS_ORIGINS=*
+    depends_on:
+      - mongodb
+      - redis
+      - orchestrator
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/api/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Orchestrator Service
+  orchestrator:
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - SLACK_SERVICE_URL=http://slack:8010
+      - GITHUB_SERVICE_URL=http://github:8011
+      - GOOGLE_SERVICE_URL=http://google:8012
+      - NOTION_SERVICE_URL=http://notion:8013
+      - CONFLUENCE_SERVICE_URL=http://confluence:8015
+      - JIRA_SERVICE_URL=http://jira:8016
+      - LINEAR_SERVICE_URL=http://linear:8017
+      - FIGMA_SERVICE_URL=http://figma:8018
+      - MICROSOFT365_SERVICE_URL=http://microsoft365:8019
+      - DEVTOOLS_SERVICE_URL=http://devtools:8025
+      - PRODUCTIVITY_SERVICE_URL=http://productivity:8026
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Integration Services
+  slack:
+    build:
+      context: ./integrations/slack
+      dockerfile: Dockerfile
+    ports:
+      - "8010:8010"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      - SLACK_APP_TOKEN=${SLACK_APP_TOKEN}
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  github:
+    build:
+      context: ./integrations/github
+      dockerfile: Dockerfile
+    ports:
+      - "8011:8011"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8011/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  google:
+    build:
+      context: ./integrations/google
+      dockerfile: Dockerfile
+    ports:
+      - "8012:8012"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - GOOGLE_CREDENTIALS_FILE=/app/credentials.json
+      - GOOGLE_TOKEN_FILE=/app/token.json
+    volumes:
+      - ./google_credentials:/app/credentials:ro
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8012/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  notion:
+    build:
+      context: ./integrations/notion
+      dockerfile: Dockerfile
+    ports:
+      - "8013:8013"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - NOTION_API_KEY=${NOTION_API_KEY}
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8013/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  confluence:
+    build:
+      context: ./integrations/confluence
+      dockerfile: Dockerfile
+    ports:
+      - "8015:8015"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - CONFLUENCE_URL=${CONFLUENCE_URL}
+      - CONFLUENCE_USERNAME=${CONFLUENCE_USERNAME}
+      - CONFLUENCE_TOKEN=${CONFLUENCE_TOKEN}
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8015/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  jira:
+    build:
+      context: ./integrations/jira
+      dockerfile: Dockerfile
+    ports:
+      - "8016:8016"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - JIRA_URL=${JIRA_URL}
+      - JIRA_USERNAME=${JIRA_USERNAME}
+      - JIRA_TOKEN=${JIRA_TOKEN}
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8016/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  linear:
+    build:
+      context: ./integrations/linear
+      dockerfile: Dockerfile
+    ports:
+      - "8017:8017"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - LINEAR_API_KEY=${LINEAR_API_KEY}
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8017/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  figma:
+    build:
+      context: ./integrations/figma
+      dockerfile: Dockerfile
+    ports:
+      - "8018:8018"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - FIGMA_TOKEN=${FIGMA_TOKEN}
+      - FIGMA_TEAM_ID=${FIGMA_TEAM_ID}
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8018/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  microsoft365:
+    build:
+      context: ./integrations/microsoft365
+      dockerfile: Dockerfile
+    ports:
+      - "8019:8019"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MS_CLIENT_ID=${MS_CLIENT_ID}
+      - MS_CLIENT_SECRET=${MS_CLIENT_SECRET}
+      - MS_TENANT_ID=${MS_TENANT_ID}
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8019/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  devtools:
+    build:
+      context: ./integrations/devtools
+      dockerfile: Dockerfile
+    ports:
+      - "8025:8025"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - STACKOVERFLOW_KEY=${STACKOVERFLOW_KEY}
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8025/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  productivity:
+    build:
+      context: ./integrations/productivity
+      dockerfile: Dockerfile
+    ports:
+      - "8026:8026"
+    environment:
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ${HOME}/Documents:/home/user/Documents:ro
+      - ${HOME}/Desktop:/home/user/Desktop:ro
+      - ${HOME}/Downloads:/home/user/Downloads:ro
+      - ${HOME}/Notes:/home/user/Notes:ro
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8026/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis_data:
+  mongo_data:
+
+networks:
+  default:
+    name: atlas_ai_network
