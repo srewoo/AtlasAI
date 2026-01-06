@@ -9,7 +9,7 @@ import StreamHandler from './streamHandler.js';
 const API_URL = typeof CONFIG !== 'undefined' ? CONFIG.API_URL : 'http://localhost:8001';
 const USER_ID = typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_USER_ID : 'default';
 
-let currentSessionId = generateSessionId();
+let currentSessionId = null;
 let settings = null;
 let streamHandler = new StreamHandler(API_URL);
 let currentBotMessageDiv = null; // Track current streaming message
@@ -18,10 +18,29 @@ function generateSessionId() {
   return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
+// Get or create persistent session ID
+async function getOrCreateSessionId() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['atlasSessionId'], (result) => {
+      if (result.atlasSessionId) {
+        resolve(result.atlasSessionId);
+      } else {
+        const newSessionId = generateSessionId();
+        chrome.storage.local.set({ atlasSessionId: newSessionId }, () => {
+          resolve(newSessionId);
+        });
+      }
+    });
+  });
+}
+
 // Initialize app
 async function init() {
   // Initialize theme manager
   await themeManager.init();
+
+  // Get persistent session ID for chat history
+  currentSessionId = await getOrCreateSessionId();
 
   const app = document.getElementById('app');
 
@@ -117,14 +136,9 @@ function renderChatUI(container) {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
           </svg>
         </button>
-        <button class="icon-button" id="minimizeBtn" title="Minimize panel" data-testid="minimize-btn">
+        <button class="icon-button" id="minimizeBtn" title="Minimize to corner" data-testid="minimize-btn">
           <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-          </svg>
-        </button>
-        <button class="icon-button" id="closeBtn" title="Close panel" data-testid="close-btn">
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
       </div>
@@ -167,7 +181,6 @@ function renderChatUI(container) {
   document.getElementById('clearChatBtn').addEventListener('click', clearChat);
   document.getElementById('settingsBtn').addEventListener('click', openSettings);
   document.getElementById('minimizeBtn').addEventListener('click', minimizePanel);
-  document.getElementById('closeBtn').addEventListener('click', closePanel);
   document.getElementById('sendButton').addEventListener('click', sendMessage);
   
   // Auto-resize textarea
@@ -521,8 +534,9 @@ async function clearChatSilently() {
       showEmptyState();
     }
 
-    // Generate new session
+    // Generate new session and persist it
     currentSessionId = generateSessionId();
+    await chrome.storage.local.set({ atlasSessionId: currentSessionId });
   } catch (error) {
     console.error('Error clearing chat:', error);
   }
@@ -660,45 +674,21 @@ function openSettings() {
   chrome.tabs.create({ url: chrome.runtime.getURL('settings.html') });
 }
 
-function minimizePanel() {
-  // Toggle compact mode - hide messages but keep input visible
-  const messagesContainer = document.getElementById('messages');
-  const minimizeBtn = document.getElementById('minimizeBtn');
+async function minimizePanel() {
+  // Send message to background script to minimize panel and show floating button
+  try {
+    // Get current tab ID
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-  if (!messagesContainer) return;
-
-  const isMinimized = messagesContainer.classList.contains('minimized');
-
-  if (isMinimized) {
-    // Restore
-    messagesContainer.classList.remove('minimized');
-    messagesContainer.style.display = 'flex';
-    if (minimizeBtn) {
-      minimizeBtn.innerHTML = `
-        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-        </svg>
-      `;
-      minimizeBtn.title = 'Minimize panel';
+    if (tab?.id) {
+      chrome.runtime.sendMessage({
+        type: 'MINIMIZE_PANEL',
+        tabId: tab.id
+      });
     }
-  } else {
-    // Minimize - hide messages
-    messagesContainer.classList.add('minimized');
-    messagesContainer.style.display = 'none';
-    if (minimizeBtn) {
-      minimizeBtn.innerHTML = `
-        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
-        </svg>
-      `;
-      minimizeBtn.title = 'Restore panel';
-    }
+  } catch (error) {
+    console.error('Error minimizing panel:', error);
   }
-}
-
-function closePanel() {
-  // Close the side panel
-  window.close();
 }
 
 // Initialize on load

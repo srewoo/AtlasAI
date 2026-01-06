@@ -2,16 +2,20 @@
   "manifest_version": 3,
   "name": "Atlas AI",
   "short_name": "Atlas AI",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "AI-powered assistant with access to Confluence, Jira, and web knowledge. Search documentation, query tickets, and get intelligent answers using GPT, Claude, or Gemini.",
   "permissions": [
     "storage",
     "contextMenus",
-    "sidePanel"
+    "sidePanel",
+    "scripting",
+    "activeTab",
+    "tabs"
   ],
   "host_permissions": [
     "http://localhost:*/*",
-    "https://*/*"
+    "https://*/*",
+    "http://*/*"
   ],
   "action": {
     "default_title": "Open Atlas AI",
@@ -58,5 +62,11 @@
       "description": "Toggle dark/light theme"
     }
   },
-  "minimum_chrome_version": "88"
+  "minimum_chrome_version": "88",
+  "web_accessible_resources": [
+    {
+      "resources": ["js/content/floatingButton.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

@@ -85,6 +85,12 @@ const configs = [
   },
   {
     ...buildOptions,
+    entryPoints: ['src/js/content/floatingButton.js'],
+    outfile: 'dist/js/content/floatingButton.js',
+    format: 'iife'
+  },
+  {
+    ...buildOptions,
     entryPoints: ['src/styles/base.css'],
     outfile: 'dist/styles.css',
     loader: { '.css': 'css' },

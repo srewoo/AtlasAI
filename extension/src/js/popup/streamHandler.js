@@ -48,8 +48,21 @@ class StreamHandler {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to connect to stream');
+        // Try to parse JSON error, fallback to text if not JSON
+        let errorMessage = 'Failed to connect to stream';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const error = await response.json();
+            errorMessage = error.detail || error.message || errorMessage;
+          } else {
+            const text = await response.text();
+            errorMessage = text || `Server error: ${response.status}`;
+          }
+        } catch (parseError) {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       // Read the stream
@@ -103,6 +116,10 @@ class StreamHandler {
                   break;
 
                 case 'error':
+                  // Check if this is a setup-required error
+                  if (data.requires_setup) {
+                    throw new Error(`⚙️ ${data.message || 'Setup required'}`);
+                  }
                   throw new Error(data.message || 'Stream error');
 
                 default:
