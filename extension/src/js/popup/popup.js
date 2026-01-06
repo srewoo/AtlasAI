@@ -118,7 +118,7 @@ function showConfigureMessage(container) {
 function renderChatUI(container) {
   container.innerHTML = `
     <div class="header" data-testid="chat-header">
-      <div class="header-title">Atlas AI</div>
+
       <div class="header-actions">
         <button class="icon-button" id="themeToggleBtn" title="Toggle theme" data-testid="theme-toggle-btn">
           <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="themeIcon">

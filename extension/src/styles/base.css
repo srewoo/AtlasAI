@@ -44,7 +44,7 @@ h1, h2, h3, h4, h5, h6 {
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 16px;
   border-bottom: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.8);
